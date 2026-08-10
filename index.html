@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DooMovie — Discover Your Next Favorite Movie</title>
+    <meta name="description" content="DooMovie is your ultimate movie discovery platform. Browse trending, top-rated, and upcoming movies with personalized recommendations.">
+    <link rel="icon" type="image/png" href="doomovie.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+    <!-- Page Loader -->
+    <div class="page-loader" id="pageLoader">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-brand">
+            <a href="index.html">
+                <img src="doomovie.png" alt="DooMovie Logo" class="logo">
+                <span class="brand-text">DooMovie</span>
+            </a>
+        </div>
+
+        <div class="navbar-nav" id="desktopNav">
+            <a href="#" class="nav-link active" data-section="home">Home</a>
+            <a href="#" class="nav-link" data-section="movies">Movies</a>
+            <a href="#" class="nav-link" data-section="mylist">My List</a>
+            <a href="#" class="nav-link" data-section="trending">New & Popular</a>
+            <a href="#" class="nav-link" onclick="openAboutModal(); return false;">About</a>
+        </div>
+
+        <div class="navbar-right">
+            <div class="nav-search-wrapper" id="navSearchWrapper">
+                <button class="nav-search-toggle" id="searchToggle" aria-label="Search">
+                    <i class="fas fa-search"></i>
+                </button>
+                <input type="text" class="nav-search-input" id="navSearchInput" placeholder="Search titles, genres...">
+                <div class="search-dropdown" id="searchDropdown"></div>
+            </div>
+
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Nav Overlay -->
+    <div class="mobile-nav-overlay" id="mobileNavOverlay">
+        <button class="mobile-nav-close" id="mobileNavClose"><i class="fas fa-times"></i></button>
+        <a href="#" data-section="home" onclick="closeMobileNav()">Home</a>
+        <a href="#" data-section="movies" onclick="closeMobileNav()">Movies</a>
+        <a href="#" data-section="mylist" onclick="closeMobileNav()">My List</a>
+        <a href="#" data-section="trending" onclick="closeMobileNav()">New & Popular</a>
+        <a href="#" onclick="openAboutModal(); closeMobileNav();">About</a>
+    </div>
+
+    <!-- Hero Billboard -->
+    <section class="hero-billboard" id="heroBillboard">
+        <!-- Slides will be dynamically inserted here -->
+        <div class="hero-dots" id="heroDots"></div>
+    </section>
+
+    <!-- Genre Quick Filters -->
+    <div class="genre-filters">
+        <div class="genre-chips" id="genreChips">
+            <button class="genre-chip active" data-genre="">All</button>
+            <button class="genre-chip" data-genre="28">Action</button>
+            <button class="genre-chip" data-genre="35">Comedy</button>
+            <button class="genre-chip" data-genre="18">Drama</button>
+            <button class="genre-chip" data-genre="27">Horror</button>
+            <button class="genre-chip" data-genre="10749">Romance</button>
+            <button class="genre-chip" data-genre="878">Sci-Fi</button>
+            <button class="genre-chip" data-genre="53">Thriller</button>
+            <button class="genre-chip" data-genre="16">Animation</button>
+            <button class="genre-chip" data-genre="99">Documentary</button>
+            <button class="genre-chip" data-genre="14">Fantasy</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="mainContent">
+
+        <!-- Trending Now -->
+        <section class="content-section" id="sectionTrending">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-fire section-icon"></i> Trending Now</h2>
+                <a href="#" class="section-explore">Explore All <i class="fas fa-chevron-right"></i></a>
+            </div>
+            <div class="carousel-wrapper">
+                <button class="carousel-arrow carousel-arrow-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
+                <div class="carousel-row" id="trendingRow">
+                    <!-- Skeleton placeholders -->
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                </div>
+                <button class="carousel-arrow carousel-arrow-right" aria-label="Scroll right"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </section>
+
+        <!-- Featured Movies -->
+        <section class="content-section" id="sectionFeatured">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-star section-icon"></i> Featured Movies</h2>
+                <a href="#" class="section-explore">Explore All <i class="fas fa-chevron-right"></i></a>
+            </div>
+            <div class="carousel-wrapper">
+                <button class="carousel-arrow carousel-arrow-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
+                <div class="carousel-row" id="featuredRow">
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                </div>
+                <button class="carousel-arrow carousel-arrow-right" aria-label="Scroll right"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </section>
+
+        <!-- Top Rated -->
+        <section class="content-section" id="sectionTopRated">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-trophy section-icon"></i> Top Rated</h2>
+                <a href="#" class="section-explore">Explore All <i class="fas fa-chevron-right"></i></a>
+            </div>
+            <div class="carousel-wrapper">
+                <button class="carousel-arrow carousel-arrow-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
+                <div class="carousel-row" id="topRatedRow">
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                </div>
+                <button class="carousel-arrow carousel-arrow-right" aria-label="Scroll right"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </section>
+
+        <!-- Indonesian Movies -->
+        <section class="content-section" id="sectionIndonesian">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-flag section-icon"></i> Indonesian Movies</h2>
+                <a href="#" class="section-explore">Explore All <i class="fas fa-chevron-right"></i></a>
+            </div>
+            <div class="carousel-wrapper">
+                <button class="carousel-arrow carousel-arrow-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
+                <div class="carousel-row" id="indonesianRow">
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                </div>
+                <button class="carousel-arrow carousel-arrow-right" aria-label="Scroll right"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </section>
+
+        <!-- Coming Soon -->
+        <section class="content-section" id="sectionUpcoming">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-clock section-icon"></i> Coming Soon</h2>
+                <a href="#" class="section-explore">Explore All <i class="fas fa-chevron-right"></i></a>
+            </div>
+            <div class="carousel-wrapper">
+                <button class="carousel-arrow carousel-arrow-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
+                <div class="carousel-row" id="upcomingRow">
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                </div>
+                <button class="carousel-arrow carousel-arrow-right" aria-label="Scroll right"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </section>
+
+        <!-- My List -->
+        <section class="content-section" id="sectionMyList" style="display:none;">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-bookmark section-icon"></i> My List</h2>
+            </div>
+            <div class="carousel-wrapper">
+                <div class="carousel-row" id="myListRow">
+                    <div class="empty-state" id="myListEmpty">
+                        <i class="fas fa-bookmark"></i>
+                        <h3>Your list is empty</h3>
+                        <p>Add movies to your list by clicking the + button on any movie card.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Movie Detail Modal -->
+    <div id="movieModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" id="movieModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            <div id="modalBody">
+                <!-- Dynamically filled -->
+            </div>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div id="aboutModal" class="modal">
+        <div class="modal-content about-modal">
+            <button class="modal-close" onclick="closeAboutModal()" aria-label="Close"><i class="fas fa-times"></i></button>
+            <div class="about-content">
+                <h2>About DooMovie</h2>
+                <p>
+                    DooMovie is your ultimate destination for discovering and exploring movies.
+                    Our platform is designed to help you find your next favorite film through
+                    personalized recommendations and comprehensive movie information.
+                </p>
+
+                <h3>Key Features</h3>
+                <ul>
+                    <li>
+                        <i class="fas fa-search"></i>
+                        <div>
+                            <strong>Smart Search</strong> — Find movies easily with our advanced search
+                            that delivers instant results as you type.
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fas fa-star"></i>
+                        <div>
+                            <strong>Curated Recommendations</strong> — Discover trending, top-rated,
+                            and upcoming movies across every genre.
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fas fa-bookmark"></i>
+                        <div>
+                            <strong>My List</strong> — Save movies to your personal watchlist and
+                            never lose track of what you want to see.
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fas fa-fire"></i>
+                        <div>
+                            <strong>New & Popular</strong> — Stay updated with the latest releases
+                            and trending movies worldwide.
+                        </div>
+                    </li>
+                </ul>
+
+                <h3>How It Works</h3>
+                <ol>
+                    <li>Browse through our extensive movie collection</li>
+                    <li>Use genre filters to find movies that match your taste</li>
+                    <li>Click any movie card for detailed info and trailers</li>
+                    <li>Save movies to your watchlist for later viewing</li>
+                    <li>Create an account for a personalized experience</li>
+                </ol>
+
+                <p>
+                    Join our community of movie enthusiasts and discover your next favorite film with DooMovie!
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Scroll to top">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <img src="doomovie.png" alt="DooMovie">
+                    <span>DooMovie</span>
+                </div>
+                <p>Your ultimate movie discovery platform. Find, save, and explore movies from around the world.</p>
+                <div class="footer-social">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Browse</h4>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Movies</a></li>
+                    <li><a href="#">My List</a></li>
+                    <li><a href="#">New & Popular</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Genres</h4>
+                <ul>
+                    <li><a href="#">Action</a></li>
+                    <li><a href="#">Comedy</a></li>
+                    <li><a href="#">Drama</a></li>
+                    <li><a href="#">Horror</a></li>
+                    <li><a href="#">Sci-Fi</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Help</h4>
+                <ul>
+                    <li><a href="#">FAQ</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Use</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 DooMovie. All rights reserved. Powered by TMDB.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
