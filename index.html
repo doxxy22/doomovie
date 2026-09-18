@@ -1,11 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DooMovie — Discover Your Next Favorite Movie</title>
     <meta name="description" content="DooMovie is your ultimate movie discovery platform. Browse trending, top-rated, and upcoming movies with personalized recommendations.">
+    <meta name="theme-color" content="#E50914">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" type="image/png" href="doomovie.png">
+    <link rel="apple-touch-icon" href="doomovie.png">
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -29,7 +34,7 @@
             <a href="#" class="nav-link active" data-section="home">Home</a>
             <a href="#" class="nav-link" data-section="movies">Movies</a>
             <a href="#" class="nav-link" data-section="mylist">My List</a>
-            <a href="#" class="nav-link" data-section="trending">New & Popular</a>
+            <a href="#" class="nav-link" data-section="trending">New &amp; Popular</a>
             <a href="#" class="nav-link" onclick="openAboutModal(); return false;">About</a>
         </div>
 
@@ -40,6 +45,45 @@
                 </button>
                 <input type="text" class="nav-search-input" id="navSearchInput" placeholder="Search titles, genres...">
                 <div class="search-dropdown" id="searchDropdown"></div>
+            </div>
+
+            <button class="theme-toggle-btn" id="themeToggle" aria-label="Toggle theme">
+                <i class="fas fa-moon"></i>
+            </button>
+
+            <!-- User Auth / Profile Area -->
+            <div class="nav-user-area" id="navUserArea">
+                <button class="btn-auth-signin" id="openAuthBtn">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Sign In</span>
+                </button>
+                <div class="user-menu-wrapper" id="userMenuWrapper" style="display: none;">
+                    <button class="user-avatar-btn" id="userAvatarBtn" aria-label="User profile">
+                        <span class="avatar-badge" id="navUserAvatar">🍿</span>
+                        <span class="nav-user-name" id="navUserName">User</span>
+                        <i class="fas fa-chevron-down nav-dropdown-arrow"></i>
+                    </button>
+                    <div class="user-dropdown-menu" id="userDropdown">
+                        <div class="dropdown-user-header">
+                            <div class="dropdown-avatar" id="dropdownUserAvatar">🍿</div>
+                            <div class="dropdown-user-details">
+                                <span class="dropdown-name" id="dropdownUsername">User</span>
+                                <span class="dropdown-email" id="dropdownEmail">user@example.com</span>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" id="openProfileBtn">
+                            <i class="fas fa-id-card"></i> My Profile &amp; Stats
+                        </button>
+                        <button class="dropdown-item" id="syncWatchlistBtn">
+                            <i class="fas fa-cloud-arrow-up"></i> Sync Cloud Watchlist
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item dropdown-logout text-danger" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> Sign Out
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">
@@ -54,7 +98,7 @@
         <a href="#" data-section="home" onclick="closeMobileNav()">Home</a>
         <a href="#" data-section="movies" onclick="closeMobileNav()">Movies</a>
         <a href="#" data-section="mylist" onclick="closeMobileNav()">My List</a>
-        <a href="#" data-section="trending" onclick="closeMobileNav()">New & Popular</a>
+        <a href="#" data-section="trending" onclick="closeMobileNav()">New &amp; Popular</a>
         <a href="#" onclick="openAboutModal(); closeMobileNav();">About</a>
     </div>
 
@@ -64,22 +108,131 @@
         <div class="hero-dots" id="heroDots"></div>
     </section>
 
-    <!-- Genre Quick Filters -->
+    <!-- Genre Quick Filters + Advanced Filters Toggle -->
     <div class="genre-filters">
-        <div class="genre-chips" id="genreChips">
-            <button class="genre-chip active" data-genre="">All</button>
-            <button class="genre-chip" data-genre="28">Action</button>
-            <button class="genre-chip" data-genre="35">Comedy</button>
-            <button class="genre-chip" data-genre="18">Drama</button>
-            <button class="genre-chip" data-genre="27">Horror</button>
-            <button class="genre-chip" data-genre="10749">Romance</button>
-            <button class="genre-chip" data-genre="878">Sci-Fi</button>
-            <button class="genre-chip" data-genre="53">Thriller</button>
-            <button class="genre-chip" data-genre="16">Animation</button>
-            <button class="genre-chip" data-genre="99">Documentary</button>
-            <button class="genre-chip" data-genre="14">Fantasy</button>
+        <div class="genre-filters-row">
+            <div class="genre-chips" id="genreChips">
+                <button class="genre-chip active" data-genre="">All</button>
+                <button class="genre-chip" data-genre="28">Action</button>
+                <button class="genre-chip" data-genre="35">Comedy</button>
+                <button class="genre-chip" data-genre="18">Drama</button>
+                <button class="genre-chip" data-genre="27">Horror</button>
+                <button class="genre-chip" data-genre="10749">Romance</button>
+                <button class="genre-chip" data-genre="878">Sci-Fi</button>
+                <button class="genre-chip" data-genre="53">Thriller</button>
+                <button class="genre-chip" data-genre="16">Animation</button>
+                <button class="genre-chip" data-genre="99">Documentary</button>
+                <button class="genre-chip" data-genre="14">Fantasy</button>
+            </div>
+            <button class="filter-toggle-btn" id="filterToggleBtn">
+                <i class="fas fa-sliders-h"></i> Filters
+            </button>
         </div>
     </div>
+
+    <!-- Advanced Filter Panel -->
+    <div class="advanced-filter-panel" id="advancedFilterPanel">
+        <div class="filter-panel-inner">
+            <div class="filter-group">
+                <label>Year</label>
+                <select id="filterYear">
+                    <option value="">Any Year</option>
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2020">2020s</option>
+                    <option value="2010">2010s</option>
+                    <option value="2000">2000s</option>
+                    <option value="1990">90s</option>
+                    <option value="1980">80s</option>
+                    <option value="classic">Classic (Pre-1980)</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Min Rating</label>
+                <div class="filter-range-row">
+                    <input type="range" id="filterRating" min="0" max="10" step="0.5" value="0">
+                    <span class="filter-range-value" id="filterRatingValue">0</span>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Sort By</label>
+                <select id="filterSort">
+                    <option value="popularity.desc">Most Popular</option>
+                    <option value="vote_average.desc">Highest Rated</option>
+                    <option value="primary_release_date.desc">Newest First</option>
+                    <option value="primary_release_date.asc">Oldest First</option>
+                    <option value="revenue.desc">Highest Revenue</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Language</label>
+                <select id="filterLanguage">
+                    <option value="">Any Language</option>
+                    <option value="en">English</option>
+                    <option value="id">Indonesian</option>
+                    <option value="ko">Korean</option>
+                    <option value="ja">Japanese</option>
+                    <option value="hi">Hindi</option>
+                    <option value="fr">French</option>
+                    <option value="es">Spanish</option>
+                    <option value="de">German</option>
+                    <option value="zh">Chinese</option>
+                    <option value="th">Thai</option>
+                </select>
+            </div>
+            <div class="filter-group" style="flex:0;">
+                <label>&nbsp;</label>
+                <div style="display:flex;gap:8px;">
+                    <button class="filter-apply-btn" id="filterApplyBtn">Apply</button>
+                    <button class="filter-reset-btn" id="filterResetBtn">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mood-Based Browsing -->
+    <section class="mood-section" id="moodSection">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-masks-theater section-icon"></i> How Are You Feeling?</h2>
+        </div>
+        <div class="mood-grid" id="moodGrid">
+            <button class="mood-card mood-happy" data-mood="happy">
+                <span class="mood-emoji">😄</span>
+                <span class="mood-label">Happy</span>
+            </button>
+            <button class="mood-card mood-thrilled" data-mood="thrilled">
+                <span class="mood-emoji">😱</span>
+                <span class="mood-label">Thrilled</span>
+            </button>
+            <button class="mood-card mood-romantic" data-mood="romantic">
+                <span class="mood-emoji">💕</span>
+                <span class="mood-label">Romantic</span>
+            </button>
+            <button class="mood-card mood-mindblown" data-mood="mindblown">
+                <span class="mood-emoji">🤯</span>
+                <span class="mood-label">Mind-Blown</span>
+            </button>
+            <button class="mood-card mood-emotional" data-mood="emotional">
+                <span class="mood-emoji">😢</span>
+                <span class="mood-label">Emotional</span>
+            </button>
+            <button class="mood-card mood-adventurous" data-mood="adventurous">
+                <span class="mood-emoji">🦸</span>
+                <span class="mood-label">Adventure</span>
+            </button>
+            <button class="mood-card mood-curious" data-mood="curious">
+                <span class="mood-emoji">📚</span>
+                <span class="mood-label">Curious</span>
+            </button>
+            <button class="mood-card mood-fun" data-mood="fun">
+                <span class="mood-emoji">😂</span>
+                <span class="mood-label">Fun</span>
+            </button>
+        </div>
+    </section>
 
     <!-- Main Content -->
     <main id="mainContent">
@@ -88,12 +241,18 @@
         <section class="content-section" id="sectionTrending">
             <div class="section-header">
                 <h2 class="section-title"><i class="fas fa-fire section-icon"></i> Trending Now</h2>
-                <a href="#" class="section-explore">Explore All <i class="fas fa-chevron-right"></i></a>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div class="view-toggle-group" data-target="trendingRow">
+                        <button class="view-toggle-btn active" data-view="carousel" title="Carousel"><i class="fas fa-grip-lines"></i></button>
+                        <button class="view-toggle-btn" data-view="grid" title="Grid"><i class="fas fa-th"></i></button>
+                        <button class="view-toggle-btn" data-view="list" title="List"><i class="fas fa-list"></i></button>
+                    </div>
+                    <a href="#" class="section-explore">Explore All <i class="fas fa-chevron-right"></i></a>
+                </div>
             </div>
             <div class="carousel-wrapper">
                 <button class="carousel-arrow carousel-arrow-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
-                <div class="carousel-row" id="trendingRow">
-                    <!-- Skeleton placeholders -->
+                <div class="carousel-row" id="trendingRow" data-endpoint="/trending/movie/week" data-page="1">
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
@@ -109,11 +268,18 @@
         <section class="content-section" id="sectionFeatured">
             <div class="section-header">
                 <h2 class="section-title"><i class="fas fa-star section-icon"></i> Featured Movies</h2>
-                <a href="#" class="section-explore">Explore All <i class="fas fa-chevron-right"></i></a>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div class="view-toggle-group" data-target="featuredRow">
+                        <button class="view-toggle-btn active" data-view="carousel" title="Carousel"><i class="fas fa-grip-lines"></i></button>
+                        <button class="view-toggle-btn" data-view="grid" title="Grid"><i class="fas fa-th"></i></button>
+                        <button class="view-toggle-btn" data-view="list" title="List"><i class="fas fa-list"></i></button>
+                    </div>
+                    <a href="#" class="section-explore">Explore All <i class="fas fa-chevron-right"></i></a>
+                </div>
             </div>
             <div class="carousel-wrapper">
                 <button class="carousel-arrow carousel-arrow-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
-                <div class="carousel-row" id="featuredRow">
+                <div class="carousel-row" id="featuredRow" data-endpoint="/movie/popular" data-page="1">
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
@@ -129,11 +295,18 @@
         <section class="content-section" id="sectionTopRated">
             <div class="section-header">
                 <h2 class="section-title"><i class="fas fa-trophy section-icon"></i> Top Rated</h2>
-                <a href="#" class="section-explore">Explore All <i class="fas fa-chevron-right"></i></a>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div class="view-toggle-group" data-target="topRatedRow">
+                        <button class="view-toggle-btn active" data-view="carousel" title="Carousel"><i class="fas fa-grip-lines"></i></button>
+                        <button class="view-toggle-btn" data-view="grid" title="Grid"><i class="fas fa-th"></i></button>
+                        <button class="view-toggle-btn" data-view="list" title="List"><i class="fas fa-list"></i></button>
+                    </div>
+                    <a href="#" class="section-explore">Explore All <i class="fas fa-chevron-right"></i></a>
+                </div>
             </div>
             <div class="carousel-wrapper">
                 <button class="carousel-arrow carousel-arrow-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
-                <div class="carousel-row" id="topRatedRow">
+                <div class="carousel-row" id="topRatedRow" data-endpoint="/movie/top_rated" data-page="1">
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
@@ -145,15 +318,56 @@
             </div>
         </section>
 
-        <!-- Indonesian Movies -->
-        <section class="content-section" id="sectionIndonesian">
+        <!-- Indonesian Cinema Hub -->
+        <section class="content-section indo-hub-section" id="sectionIndonesian">
             <div class="section-header">
-                <h2 class="section-title"><i class="fas fa-flag section-icon"></i> Indonesian Movies</h2>
+                <h2 class="section-title">
+                    <i class="fas fa-flag section-icon"></i> Indonesian Cinema
+                    <span class="indo-hub-badge">🇮🇩 HUB</span>
+                </h2>
                 <a href="#" class="section-explore">Explore All <i class="fas fa-chevron-right"></i></a>
             </div>
             <div class="carousel-wrapper">
                 <button class="carousel-arrow carousel-arrow-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
-                <div class="carousel-row" id="indonesianRow">
+                <div class="carousel-row" id="indonesianRow" data-endpoint="/discover/movie" data-page="1">
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                </div>
+                <button class="carousel-arrow carousel-arrow-right" aria-label="Scroll right"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </section>
+
+        <!-- Indonesian Top Rated -->
+        <section class="content-section indo-hub-section" id="sectionIndonesianTopRated" style="border-top:none;margin-top:0;padding-top:0;">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-medal section-icon"></i> Indonesian Top Rated</h2>
+            </div>
+            <div class="carousel-wrapper">
+                <button class="carousel-arrow carousel-arrow-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
+                <div class="carousel-row" id="indonesianTopRatedRow" data-endpoint="/discover/movie" data-page="1">
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
+                </div>
+                <button class="carousel-arrow carousel-arrow-right" aria-label="Scroll right"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </section>
+
+        <!-- Indonesian New Releases -->
+        <section class="content-section indo-hub-section" id="sectionIndonesianNew" style="border-top:none;margin-top:0;padding-top:0;">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-sparkles section-icon"></i> Indonesian New Releases</h2>
+            </div>
+            <div class="carousel-wrapper">
+                <button class="carousel-arrow carousel-arrow-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
+                <div class="carousel-row" id="indonesianNewRow" data-endpoint="/discover/movie" data-page="1">
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
@@ -173,7 +387,7 @@
             </div>
             <div class="carousel-wrapper">
                 <button class="carousel-arrow carousel-arrow-left" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
-                <div class="carousel-row" id="upcomingRow">
+                <div class="carousel-row" id="upcomingRow" data-endpoint="/movie/upcoming" data-page="1">
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
                     <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>
@@ -187,8 +401,14 @@
 
         <!-- My List -->
         <section class="content-section" id="sectionMyList" style="display:none;">
-            <div class="section-header">
-                <h2 class="section-title"><i class="fas fa-bookmark section-icon"></i> My List</h2>
+            <div class="section-header mylist-header">
+                <h2 class="section-title"><i class="fas fa-bookmark section-icon"></i> My Lists</h2>
+                <div class="list-tabs" id="listTabs">
+                    <!-- Dynamically filled -->
+                </div>
+                <button class="create-list-btn" id="createListBtn">
+                    <i class="fas fa-plus"></i> New List
+                </button>
             </div>
             <div class="carousel-wrapper">
                 <div class="carousel-row" id="myListRow">
@@ -202,6 +422,26 @@
         </section>
 
     </main>
+
+    <!-- Surprise Me FAB -->
+    <button class="surprise-fab" id="surpriseFab" aria-label="Surprise Me">
+        <i class="fas fa-dice"></i>
+        <span class="fab-tooltip">Surprise Me! 🎲</span>
+    </button>
+
+    <!-- Surprise Overlay -->
+    <div class="surprise-overlay" id="surpriseOverlay">
+        <button class="surprise-close" id="surpriseClose"><i class="fas fa-times"></i></button>
+        <div class="surprise-roulette" id="surpriseRoulette">
+            <img id="surprisePoster" src="" alt="Surprise Movie">
+        </div>
+        <h2 class="surprise-title" id="surpriseTitle"></h2>
+        <div class="surprise-actions" id="surpriseActions">
+            <button class="btn-hero btn-hero-play" id="surpriseInfoBtn"><i class="fas fa-info-circle"></i> More Info</button>
+            <button class="btn-hero btn-hero-list" id="surpriseAddBtn"><i class="fas fa-plus"></i> My List</button>
+            <button class="btn-hero btn-hero-info" id="surpriseAgainBtn"><i class="fas fa-dice"></i> Again</button>
+        </div>
+    </div>
 
     <!-- Movie Detail Modal -->
     <div id="movieModal" class="modal">
@@ -244,31 +484,273 @@
                     <li>
                         <i class="fas fa-bookmark"></i>
                         <div>
-                            <strong>My List</strong> — Save movies to your personal watchlist and
-                            never lose track of what you want to see.
+                            <strong>Multiple Watchlists</strong> — Create custom lists to organize your
+                            movies by mood, occasion, or any category you like.
                         </div>
                     </li>
                     <li>
-                        <i class="fas fa-fire"></i>
+                        <i class="fas fa-masks-theater"></i>
                         <div>
-                            <strong>New & Popular</strong> — Stay updated with the latest releases
-                            and trending movies worldwide.
+                            <strong>Mood Browsing</strong> — Pick your mood and discover movies that
+                            match how you're feeling right now.
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fas fa-dice"></i>
+                        <div>
+                            <strong>Surprise Me</strong> — Can't decide? Let us pick a random movie
+                            for you with a fun roulette animation.
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fas fa-flag"></i>
+                        <div>
+                            <strong>Indonesian Cinema Hub</strong> — Dedicated section celebrating
+                            the best of Indonesian filmmaking.
                         </div>
                     </li>
                 </ul>
 
+                <h3>Keyboard Shortcuts</h3>
+                <p>Press <kbd>?</kbd> anywhere to see all available keyboard shortcuts.</p>
+
                 <h3>How It Works</h3>
                 <ol>
                     <li>Browse through our extensive movie collection</li>
-                    <li>Use genre filters to find movies that match your taste</li>
+                    <li>Use genre filters or mood cards to find movies that match your taste</li>
                     <li>Click any movie card for detailed info and trailers</li>
-                    <li>Save movies to your watchlist for later viewing</li>
-                    <li>Create an account for a personalized experience</li>
+                    <li>Save movies to your custom watchlists</li>
+                    <li>Try "Surprise Me" when you can't decide what to watch!</li>
                 </ol>
+            </div>
+        </div>
+    </div>
 
-                <p>
-                    Join our community of movie enthusiasts and discover your next favorite film with DooMovie!
-                </p>
+    <!-- Create List Modal -->
+    <div id="createListModal" class="modal">
+        <div class="modal-content create-list-modal">
+            <button class="modal-close" id="createListModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            <h2>Create New List</h2>
+            <input type="text" id="newListName" placeholder="List name (e.g. Weekend Watch)" maxlength="40">
+            <label style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--color-text-dim);margin-bottom:6px;display:block;">Pick an icon</label>
+            <div class="emoji-picker-row" id="emojiPicker">
+                <button class="emoji-pick selected" data-emoji="📋">📋</button>
+                <button class="emoji-pick" data-emoji="🍿">🍿</button>
+                <button class="emoji-pick" data-emoji="❤️">❤️</button>
+                <button class="emoji-pick" data-emoji="🎬">🎬</button>
+                <button class="emoji-pick" data-emoji="🌙">🌙</button>
+                <button class="emoji-pick" data-emoji="🔥">🔥</button>
+                <button class="emoji-pick" data-emoji="⭐">⭐</button>
+                <button class="emoji-pick" data-emoji="👻">👻</button>
+                <button class="emoji-pick" data-emoji="🎉">🎉</button>
+                <button class="emoji-pick" data-emoji="💎">💎</button>
+                <button class="emoji-pick" data-emoji="🏆">🏆</button>
+                <button class="emoji-pick" data-emoji="🎯">🎯</button>
+            </div>
+            <div class="create-list-actions">
+                <button class="filter-reset-btn" id="cancelCreateList">Cancel</button>
+                <button class="filter-apply-btn" id="confirmCreateList">Create List</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div id="shortcutsModal" class="modal">
+        <div class="modal-content shortcuts-modal">
+            <button class="modal-close" id="shortcutsModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            <h2>⌨️ Keyboard Shortcuts</h2>
+            <ul class="shortcut-list">
+                <li class="shortcut-item">
+                    <span>Search movies</span>
+                    <span class="shortcut-key"><kbd>/</kbd></span>
+                </li>
+                <li class="shortcut-item">
+                    <span>Close modal / overlay</span>
+                    <span class="shortcut-key"><kbd>Esc</kbd></span>
+                </li>
+                <li class="shortcut-item">
+                    <span>Previous hero slide</span>
+                    <span class="shortcut-key"><kbd>←</kbd></span>
+                </li>
+                <li class="shortcut-item">
+                    <span>Next hero slide</span>
+                    <span class="shortcut-key"><kbd>→</kbd></span>
+                </li>
+                <li class="shortcut-item">
+                    <span>Surprise Me</span>
+                    <span class="shortcut-key"><kbd>S</kbd></span>
+                </li>
+                <li class="shortcut-item">
+                    <span>Toggle dark/light mode</span>
+                    <span class="shortcut-key"><kbd>D</kbd></span>
+                </li>
+                <li class="shortcut-item">
+                    <span>Go to My List</span>
+                    <span class="shortcut-key"><kbd>L</kbd></span>
+                </li>
+                <li class="shortcut-item">
+                    <span>Scroll to top</span>
+                    <span class="shortcut-key"><kbd>T</kbd></span>
+                </li>
+                <li class="shortcut-item">
+                    <span>Show this help</span>
+                    <span class="shortcut-key"><kbd>?</kbd></span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Auth Modal (Sign In / Register) -->
+    <div id="authModal" class="modal">
+        <div class="modal-content auth-modal-card">
+            <button class="modal-close" id="authModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            <div class="auth-modal-header">
+                <div class="auth-modal-logo">
+                    <img src="doomovie.png" alt="DooMovie Logo">
+                </div>
+                <h2 id="authModalTitle">Welcome to DooMovie</h2>
+                <p id="authModalSubtitle">Sign in to sync your watchlists and leave reviews</p>
+                <div class="auth-tab-group">
+                    <button class="auth-tab-btn active" data-tab="login" id="tabLoginBtn">Sign In</button>
+                    <button class="auth-tab-btn" data-tab="register" id="tabRegisterBtn">Create Account</button>
+                </div>
+            </div>
+
+            <!-- Error/Info Alert inside Modal -->
+            <div class="auth-alert" id="authAlert" style="display: none;"></div>
+
+            <!-- Sign In Form -->
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="loginIdentifier">Username or Email</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" id="loginIdentifier" placeholder="cinephile / user@domain.com" required autocomplete="username">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
+                        <button type="button" class="btn-toggle-pwd" data-target="loginPassword" aria-label="Toggle password visibility">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="auth-submit-btn" id="loginSubmitBtn">
+                    <span>Sign In</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+                <div class="auth-switch-prompt">
+                    Don't have an account? <a href="#" id="switchToRegister">Create one for free</a>
+                </div>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="regUsername">Username</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user-tag input-icon"></i>
+                        <input type="text" id="regUsername" placeholder="cinephile99" minlength="3" required autocomplete="username">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">Email Address</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" id="regEmail" placeholder="you@domain.com" required autocomplete="email">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Password (Min. 6 characters)</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="regPassword" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+                        <button type="button" class="btn-toggle-pwd" data-target="regPassword" aria-label="Toggle password visibility">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Choose Avatar Icon</label>
+                    <div class="avatar-picker-row" id="regAvatarPicker">
+                        <button type="button" class="avatar-pick selected" data-avatar="🍿">🍿</button>
+                        <button type="button" class="avatar-pick" data-avatar="🎬">🎬</button>
+                        <button type="button" class="avatar-pick" data-avatar="🚀">🚀</button>
+                        <button type="button" class="avatar-pick" data-avatar="👑">👑</button>
+                        <button type="button" class="avatar-pick" data-avatar="🌟">🌟</button>
+                        <button type="button" class="avatar-pick" data-avatar="🦄">🦄</button>
+                        <button type="button" class="avatar-pick" data-avatar="🍕">🍕</button>
+                        <button type="button" class="avatar-pick" data-avatar="🐱">🐱</button>
+                        <button type="button" class="avatar-pick" data-avatar="🤖">🤖</button>
+                        <button type="button" class="avatar-pick" data-avatar="🎧">🎧</button>
+                    </div>
+                </div>
+                <button type="submit" class="auth-submit-btn" id="regSubmitBtn">
+                    <span>Create Account</span>
+                    <i class="fas fa-sparkles"></i>
+                </button>
+                <div class="auth-switch-prompt">
+                    Already have an account? <a href="#" id="switchToLogin">Sign In instead</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Profile & Stats Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content profile-modal-card">
+            <button class="modal-close" id="profileModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            <div class="profile-header">
+                <div class="profile-avatar-large" id="profileModalAvatar">🍿</div>
+                <div class="profile-title-area">
+                    <h2 id="profileModalUsername">Username</h2>
+                    <span class="profile-email-badge" id="profileModalEmail">user@example.com</span>
+                    <span class="profile-member-since" id="profileModalMemberSince">Member since 2026</span>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="profile-stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="statListsCount">0</div>
+                    <div class="stat-label">Watchlists</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="statMoviesCount">0</div>
+                    <div class="stat-label">Saved Movies</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="statReviewsCount">0</div>
+                    <div class="stat-label">Reviews Written</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="statAvgRating">-</div>
+                    <div class="stat-label">Avg Rating Given</div>
+                </div>
+            </div>
+
+            <!-- Bio Section -->
+            <div class="profile-bio-card">
+                <label class="bio-label"><i class="fas fa-quote-left"></i> Cinema Bio</label>
+                <textarea id="profileBioInput" class="profile-bio-input" placeholder="Tell other cinephiles about your favorite genres or directors..." maxlength="200" rows="2"></textarea>
+                <div class="bio-actions">
+                    <button class="btn-save-bio" id="saveBioBtn">Update Bio</button>
+                </div>
+            </div>
+
+            <!-- Profile Actions -->
+            <div class="profile-modal-actions">
+                <button class="profile-action-btn sync-cloud-btn" id="profileSyncCloudBtn">
+                    <i class="fas fa-cloud-arrow-up"></i>
+                    <span>Sync Watchlists to Cloud</span>
+                </button>
+                <button class="profile-action-btn signout-btn" id="profileSignoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sign Out</span>
+                </button>
             </div>
         </div>
     </div>
@@ -303,7 +785,7 @@
                     <li><a href="#">Home</a></li>
                     <li><a href="#">Movies</a></li>
                     <li><a href="#">My List</a></li>
-                    <li><a href="#">New & Popular</a></li>
+                    <li><a href="#">New &amp; Popular</a></li>
                 </ul>
             </div>
             <div class="footer-col">
