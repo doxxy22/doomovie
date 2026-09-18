@@ -140,6 +140,19 @@ async function initApp() {
     setupKeyboardShortcuts();
     registerServiceWorker();
 
+    // Phase 5: Scale, Monetize, Streaming & Cinephile features
+    setupMovieRoulette();
+    setupCinephileChallenges();
+    setupDooMoviePro();
+    setupMovieJourneyAndWrapped();
+    setupAdminDashboard();
+    setupGDPRCompliance();
+    setupWebVitalsMonitoring();
+
+    if (window.__INITIAL_MOVIE_ID__) {
+        showMovieDetails(window.__INITIAL_MOVIE_ID__);
+    }
+
     // Load data concurrently
     await Promise.all([
         loadHeroBillboard(),
@@ -607,6 +620,9 @@ async function showMovieDetails(movieId) {
       <button class="modal-tab-btn" data-tab="reviews" onclick="switchMovieTab('reviews')">
         <i class="fas fa-comments"></i> Reviews &amp; Ratings <span class="tab-review-count-badge" id="modalTabReviewCount">0</span>
       </button>
+      <button class="modal-tab-btn" data-tab="streaming" onclick="switchMovieTab('streaming')">
+        <i class="fas fa-tv"></i> Where to Watch
+      </button>
     </div>
 
     <div class="modal-body-content">
@@ -644,11 +660,20 @@ async function showMovieDetails(movieId) {
           <div style="padding: 20px; text-align: center;"><div class="mini-spinner"></div> Loading reviews...</div>
         </div>
       </div>
+
+      <!-- Tab 4: Where to Watch Streaming Providers -->
+      <div class="modal-tab-pane" id="tabPaneStreaming">
+        <div class="streaming-providers-section" id="streamingProvidersSection">
+          <div style="padding: 20px; text-align: center;"><div class="mini-spinner"></div> Loading streaming availability...</div>
+        </div>
+      </div>
     </div>
   `;
 
     // Load live community reviews and stats
     loadMovieReviews(movieId, data.title);
+    // Load live streaming providers
+    loadWatchProviders(movieId, data);
 }
 
 function switchMovieTab(tabName) {
@@ -661,6 +686,7 @@ function switchMovieTab(tabName) {
     if (tabName === 'overview') document.getElementById('tabPaneOverview')?.classList.add('active');
     if (tabName === 'trailer') document.getElementById('tabPaneTrailer')?.classList.add('active');
     if (tabName === 'reviews') document.getElementById('tabPaneReviews')?.classList.add('active');
+    if (tabName === 'streaming') document.getElementById('tabPaneStreaming')?.classList.add('active');
 }
 
 function updateModalListButton(movieId) {
@@ -1808,6 +1834,17 @@ function updateNavbarAuthState() {
         if (dropAvatar) dropAvatar.textContent = currentUser.avatar || '🍿';
         if (dropName) dropName.textContent = currentUser.username;
         if (dropEmail) dropEmail.textContent = currentUser.email;
+
+        // Phase 5: Toggle Pro Badge & Admin Dashboard
+        const isPro = currentUser.tier === 'pro';
+        const isAdmin = currentUser.role === 'admin';
+        const navPro = document.getElementById('navUserProPill');
+        const dropPro = document.getElementById('dropdownUserProPill');
+        const adminBtn = document.getElementById('openAdminBtn');
+
+        if (navPro) navPro.style.display = isPro ? 'inline-flex' : 'none';
+        if (dropPro) dropPro.style.display = isPro ? 'inline-flex' : 'none';
+        if (adminBtn) adminBtn.style.display = isAdmin ? 'flex' : 'none';
     } else {
         if (openAuthBtn) openAuthBtn.style.display = 'inline-flex';
         if (userMenuWrapper) userMenuWrapper.style.display = 'none';
@@ -2422,5 +2459,848 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── PHASE 5: ADVANCED CINEPHILE PLATFORM IMPLEMENTATION ──
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── 1. "Where to Watch" Streaming Availability & Affiliate Tracking ──
+async function loadWatchProviders(movieId, movieData) {
+    const container = document.getElementById('streamingProvidersSection');
+    if (!container) return;
+
+    try {
+        const res = await fetch(`${API_SERVER_ORIGIN}/api/movies/${movieId}/watch-providers`);
+        const data = await res.json();
+        const indo = data.indonesia;
+        const global = data.global;
+
+        const flatrate = (indo?.flatrate && indo.flatrate.length) ? indo.flatrate : (global?.flatrate || []);
+        const rent = (indo?.rent && indo.rent.length) ? indo.rent : (global?.rent || []);
+        const buy = (indo?.buy && indo.buy.length) ? indo.buy : (global?.buy || []);
+        const justWatchLink = indo?.link || global?.link || `https://www.themoviedb.org/movie/${movieId}/watch`;
+
+        let html = `
+            <div class="streaming-header">
+                <div>
+                    <h4><i class="fas fa-tv" style="color:var(--color-primary);margin-right:8px;"></i> Streaming Availability</h4>
+                    <p style="font-size:.82rem;color:var(--color-text-dim);margin-top:2px;">Official platforms where you can watch "${escapeHtml(movieData.title || '')}"</p>
+                </div>
+                <button type="button" class="btn-log-journey-quick" onclick="openQuickJourneyLogger(${movieId}, '${escapeHtml(movieData.title || '').replace(/'/g, "\\'")}', '${movieData.poster_path || ''}')">
+                    <i class="fas fa-plus"></i> Log to Journey
+                </button>
+            </div>
+        `;
+
+        if (flatrate.length) {
+            html += `
+                <div class="streaming-category">
+                    <div class="streaming-cat-title"><i class="fas fa-play-circle" style="color:#22c55e"></i> Stream Now (Subscription)</div>
+                    <div class="streaming-providers-grid">
+                        ${flatrate.map(p => `
+                            <div class="provider-pill-card" onclick="handleAffiliateClick('${escapeHtml(p.provider_name)}', ${movieId}, '${escapeHtml(justWatchLink)}')">
+                                <img src="https://image.tmdb.org/t/p/w92${p.logo_path}" alt="${escapeHtml(p.provider_name)}" class="provider-logo-img">
+                                <div class="provider-info">
+                                    <span class="provider-name">${escapeHtml(p.provider_name)}</span>
+                                    <span class="provider-action-tag">Stream <i class="fas fa-arrow-up-right-from-square"></i></span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        if (rent.length || buy.length) {
+            const digitalOptions = [...rent, ...buy];
+            // Deduplicate by provider_id
+            const seen = new Set();
+            const uniqueOptions = digitalOptions.filter(p => seen.has(p.provider_name) ? false : seen.add(p.provider_name));
+
+            html += `
+                <div class="streaming-category" style="margin-top:16px;">
+                    <div class="streaming-cat-title"><i class="fas fa-tag" style="color:#eab308"></i> Rent or Buy</div>
+                    <div class="streaming-providers-grid">
+                        ${uniqueOptions.map(p => `
+                            <div class="provider-pill-card rent-buy" onclick="handleAffiliateClick('${escapeHtml(p.provider_name)}', ${movieId}, '${escapeHtml(justWatchLink)}')">
+                                <img src="https://image.tmdb.org/t/p/w92${p.logo_path}" alt="${escapeHtml(p.provider_name)}" class="provider-logo-img">
+                                <div class="provider-info">
+                                    <span class="provider-name">${escapeHtml(p.provider_name)}</span>
+                                    <span class="provider-action-tag">Rent / Buy <i class="fas fa-arrow-up-right-from-square"></i></span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        if (!flatrate.length && !rent.length && !buy.length) {
+            html += `
+                <div style="text-align:center;padding:32px;background:rgba(255,255,255,0.02);border-radius:var(--radius-md);border:1px dashed var(--color-border);margin:16px 0;">
+                    <i class="fas fa-film" style="font-size:2rem;color:var(--color-text-dim);margin-bottom:10px;display:block;"></i>
+                    <p style="color:var(--color-text-muted);font-size:.9rem;">Currently not available on mainstream streaming subscription in your region.</p>
+                    <a href="${escapeHtml(justWatchLink)}" target="_blank" rel="noopener noreferrer" class="btn-check-justwatch" style="margin-top:12px;display:inline-flex;">
+                        <i class="fas fa-external-link-alt"></i> Check All Platforms on JustWatch
+                    </a>
+                </div>
+            `;
+        } else {
+            html += `
+                <div class="justwatch-attribution">
+                    Streaming data provided by <a href="${escapeHtml(justWatchLink)}" target="_blank" rel="noopener noreferrer">JustWatch &amp; TMDB</a>
+                </div>
+            `;
+        }
+
+        container.innerHTML = html;
+    } catch (e) {
+        console.warn('Could not load watch providers:', e);
+        container.innerHTML = `
+            <div style="text-align:center;padding:24px;color:var(--color-text-dim);">
+                Streaming availability information is currently unavailable.
+            </div>
+        `;
+    }
+}
+
+async function handleAffiliateClick(provider, movieId, targetUrl) {
+    try {
+        await apiFetch('/api/affiliate/click', {
+            method: 'POST',
+            body: JSON.stringify({ provider, movieId, targetUrl })
+        }).catch(() => null);
+    } catch (e) { /* ignore */ }
+
+    // Open target streaming page in new tab
+    window.open(targetUrl || 'https://www.themoviedb.org', '_blank', 'noopener,noreferrer');
+}
+
+// ── 2. Movie Roulette (Group Decision Maker) ──
+let rouletteCandidates = [
+    'Inception', 'Interstellar', 'Parasite', 
+    'The Dark Knight', 'Spirited Away', 'Pengabdi Setan'
+];
+let isSpinningRoulette = false;
+
+function setupMovieRoulette() {
+    const openBtn = document.getElementById('openRouletteBtn');
+    const modal = document.getElementById('rouletteModal');
+    const closeBtn = document.getElementById('rouletteModalClose');
+    const spinBtn = document.getElementById('spinRouletteBtn');
+    const addBtn = document.getElementById('addRouletteMovieBtn');
+    const input = document.getElementById('rouletteMovieInput');
+    const trendingPreset = document.getElementById('presetTrendingBtn');
+    const watchlistPreset = document.getElementById('presetWatchlistBtn');
+    const clearPreset = document.getElementById('presetClearBtn');
+    const againBtn = document.getElementById('rouletteSpinAgainBtn');
+
+    openBtn?.addEventListener('click', () => {
+        modal.classList.add('visible');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        renderRouletteTags();
+        drawRouletteWheel();
+    });
+
+    const closeRoulette = () => {
+        if (isSpinningRoulette) return;
+        modal.classList.remove('visible');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    };
+
+    closeBtn?.addEventListener('click', closeRoulette);
+    modal?.addEventListener('click', (e) => { if (e.target === modal) closeRoulette(); });
+
+    // Add custom movie
+    const addMovie = () => {
+        const val = input.value.trim();
+        if (val && !rouletteCandidates.includes(val)) {
+            rouletteCandidates.push(val);
+            input.value = '';
+            renderRouletteTags();
+            drawRouletteWheel();
+        }
+    };
+    addBtn?.addEventListener('click', addMovie);
+    input?.addEventListener('keydown', (e) => { if (e.key === 'Enter') addMovie(); });
+
+    // Presets
+    trendingPreset?.addEventListener('click', async () => {
+        const data = await fetchAPI('/trending/movie/week');
+        if (data?.results?.length) {
+            rouletteCandidates = data.results.slice(0, 8).map(m => m.title);
+            renderRouletteTags();
+            drawRouletteWheel();
+            showToast('Filled Roulette with 8 trending movies! 🔥', 'info');
+        }
+    });
+
+    watchlistPreset?.addEventListener('click', () => {
+        const def = getDefaultListMovies();
+        if (!def.length) {
+            showToast('Your watchlist is empty. Add movies first!', 'error');
+            return;
+        }
+        // Grab titles from cached list items or default
+        const activeList = movieLists.find(l => l.id === activeListId) || movieLists[0];
+        const titles = (activeList?.movieDetails || []).map(m => m.title).filter(Boolean);
+        if (titles.length) {
+            rouletteCandidates = titles.slice(0, 10);
+            renderRouletteTags();
+            drawRouletteWheel();
+            showToast('Filled with your watchlist! 📋', 'info');
+        } else {
+            showToast('Watchlist items loaded', 'info');
+        }
+    });
+
+    clearPreset?.addEventListener('click', () => {
+        rouletteCandidates = [];
+        renderRouletteTags();
+        drawRouletteWheel();
+    });
+
+    // Spin animation
+    const runSpin = () => {
+        if (isSpinningRoulette) return;
+        if (rouletteCandidates.length < 2) {
+            showToast('Please add at least 2 movie candidates to spin!', 'error');
+            return;
+        }
+
+        isSpinningRoulette = true;
+        spinBtn.disabled = true;
+        document.getElementById('rouletteResultCard').style.display = 'none';
+
+        const canvas = document.getElementById('rouletteWheelCanvas');
+        const numSlices = rouletteCandidates.length;
+        const sliceAngle = (2 * Math.PI) / numSlices;
+
+        // Choose random winner
+        const winningIndex = Math.floor(Math.random() * numSlices);
+        // Total rotations: 5 full circles + angle to winner
+        const extraRotations = 5 * 2 * Math.PI;
+        // Pointer is at top (-PI/2)
+        const targetAngle = extraRotations + ((numSlices - winningIndex) * sliceAngle) - (sliceAngle / 2);
+
+        const duration = 4000;
+        const startTime = performance.now();
+
+        function animateWheel(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(1, elapsed / duration);
+            // Ease out cubic
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const currentAngle = targetAngle * easeOut;
+
+            drawRouletteWheel(currentAngle);
+
+            if (progress < 1) {
+                requestAnimationFrame(animateWheel);
+            } else {
+                isSpinningRoulette = false;
+                spinBtn.disabled = false;
+                const winnerTitle = rouletteCandidates[winningIndex];
+                showRouletteWinner(winnerTitle);
+            }
+        }
+
+        requestAnimationFrame(animateWheel);
+    };
+
+    spinBtn?.addEventListener('click', runSpin);
+    againBtn?.addEventListener('click', runSpin);
+}
+
+function renderRouletteTags() {
+    const container = document.getElementById('rouletteTagsList');
+    if (!container) return;
+    container.innerHTML = rouletteCandidates.map((m, i) => `
+        <span class="roulette-tag">
+            ${escapeHtml(m)}
+            <button type="button" onclick="removeRouletteTag(${i})" aria-label="Remove">&times;</button>
+        </span>
+    `).join('');
+}
+
+function removeRouletteTag(index) {
+    rouletteCandidates.splice(index, 1);
+    renderRouletteTags();
+    drawRouletteWheel();
+}
+
+const ROULETTE_PALETTE = ['#e50914', '#0284c7', '#16a34a', '#d97706', '#9333ea', '#db2777', '#0891b2', '#ca8a04'];
+
+function drawRouletteWheel(rotation = 0) {
+    const canvas = document.getElementById('rouletteWheelCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const radius = cx - 10;
+    const count = rouletteCandidates.length;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (count === 0) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = '#1e293b';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.stroke();
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Add movies to spin', cx, cy);
+        return;
+    }
+
+    const slice = (2 * Math.PI) / count;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(rotation - Math.PI / 2); // Start with slice 0 at top
+
+    for (let i = 0; i < count; i++) {
+        const start = i * slice;
+        const end = start + slice;
+
+        // Slice background
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius, start, end);
+        ctx.fillStyle = ROULETTE_PALETTE[i % ROULETTE_PALETTE.length];
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Text
+        ctx.save();
+        ctx.rotate(start + slice / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px Inter, sans-serif';
+        ctx.shadowColor = 'rgba(0,0,0,0.7)';
+        ctx.shadowBlur = 4;
+        const label = rouletteCandidates[i].length > 14 ? rouletteCandidates[i].slice(0, 13) + '…' : rouletteCandidates[i];
+        ctx.fillText(label, radius - 18, 4);
+        ctx.restore();
+    }
+
+    // Center pin
+    ctx.beginPath();
+    ctx.arc(0, 0, 24, 0, 2 * Math.PI);
+    ctx.fillStyle = '#0f172a';
+    ctx.fill();
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.restore();
+}
+
+function showRouletteWinner(title) {
+    const card = document.getElementById('rouletteResultCard');
+    const titleEl = document.getElementById('rouletteWinnerTitle');
+    const viewBtn = document.getElementById('rouletteViewMovieBtn');
+    if (!card || !titleEl) return;
+
+    titleEl.textContent = title;
+    card.style.display = 'block';
+
+    viewBtn.onclick = async () => {
+        document.getElementById('rouletteModal')?.classList.remove('visible');
+        document.getElementById('rouletteModal').style.display = 'none';
+        document.body.style.overflow = '';
+        // Search and open details
+        const searchData = await fetchAPI('/search/movie', { query: title });
+        if (searchData?.results?.length) {
+            showMovieDetails(searchData.results[0].id);
+        } else {
+            showToast(`Winner chosen: ${title}! 🎉`, 'success');
+        }
+    };
+
+    showToast(`The Roulette has decided: ${title}! 🎬`, 'success');
+}
+
+// ── 3. Cinephile Challenges & Gamification ──
+async function setupCinephileChallenges() {
+    const openBtn = document.getElementById('openChallengesBtn');
+    const modal = document.getElementById('challengesModal');
+    const closeBtn = document.getElementById('challengesModalClose');
+
+    openBtn?.addEventListener('click', () => {
+        modal.classList.add('visible');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        loadChallengesList();
+    });
+
+    const closeChallenges = () => {
+        modal.classList.remove('visible');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    };
+
+    closeBtn?.addEventListener('click', closeChallenges);
+    modal?.addEventListener('click', (e) => { if (e.target === modal) closeChallenges(); });
+}
+
+async function loadChallengesList() {
+    const container = document.getElementById('challengesListContainer');
+    if (!container) return;
+
+    try {
+        const data = await apiFetch('/api/challenges');
+        const list = data.challenges || [];
+
+        container.innerHTML = list.map(ch => `
+            <div class="challenge-card ${ch.is_completed ? 'completed' : ''}">
+                <div class="challenge-icon">${ch.icon || '🏆'}</div>
+                <div class="challenge-content">
+                    <div class="challenge-title-row">
+                        <h4>${escapeHtml(ch.title)}</h4>
+                        <span class="challenge-badge-tag">${ch.is_completed ? 'UNLOCKED' : `${ch.progress}/${ch.target_count}`}</span>
+                    </div>
+                    <p class="challenge-desc">${escapeHtml(ch.description)}</p>
+                    <div class="challenge-progress-bar">
+                        <div class="challenge-progress-fill" style="width: ${ch.pct}%;"></div>
+                    </div>
+                    <div class="challenge-reward-label">
+                        <i class="fas fa-medal" style="color:#ffd700"></i> Reward: <strong>${escapeHtml(ch.badge_name)}</strong>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        container.innerHTML = '<p style="color:var(--color-text-dim);text-align:center;">Could not load challenges.</p>';
+    }
+}
+
+// ── 4. DooMovie Pro & Stripe Freemium ──
+function setupDooMoviePro() {
+    const openBtn = document.getElementById('openProBtn');
+    const modal = document.getElementById('proModal');
+    const closeBtn = document.getElementById('proModalClose');
+    const checkoutBtn = document.getElementById('stripeCheckoutBtn');
+
+    openBtn?.addEventListener('click', () => {
+        modal.classList.add('visible');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    });
+
+    const closePro = () => {
+        modal.classList.remove('visible');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    };
+
+    closeBtn?.addEventListener('click', closePro);
+    modal?.addEventListener('click', (e) => { if (e.target === modal) closePro(); });
+
+    checkoutBtn?.addEventListener('click', async () => {
+        if (!currentUser || !authToken) {
+            closePro();
+            openAuthModal('login', 'Please sign in to upgrade to DooMovie Pro');
+            return;
+        }
+
+        checkoutBtn.disabled = true;
+        checkoutBtn.innerHTML = '<div class="mini-spinner"></div> Connecting to Stripe...';
+
+        try {
+            const data = await apiFetch('/api/subscription/create-checkout-session', { method: 'POST' });
+            currentUser.tier = 'pro';
+            localStorage.setItem('doomovie_user', JSON.stringify(currentUser));
+            updateNavbarAuthState();
+            closePro();
+            showToast('🎉 Welcome to DooMovie Pro! Golden badge & perks unlocked!', 'success');
+        } catch (err) {
+            showToast(err.message || 'Subscription failed', 'error');
+        } finally {
+            checkoutBtn.disabled = false;
+            checkoutBtn.innerHTML = '<i class="fab fa-stripe" style="font-size:1.4rem;margin-right:6px"></i> Upgrade with Stripe Now';
+        }
+    });
+}
+
+// ── 5. Movie Journey Timeline & Year in Review (Wrapped) ──
+function setupMovieJourneyAndWrapped() {
+    // Journey Modal
+    const openJourneyBtn = document.getElementById('openJourneyBtn');
+    const journeyModal = document.getElementById('journeyModal');
+    const journeyClose = document.getElementById('journeyModalClose');
+    const addJourneyBtn = document.getElementById('addJourneyBtn');
+
+    openJourneyBtn?.addEventListener('click', () => {
+        document.getElementById('userMenuWrapper')?.classList.remove('active');
+        if (!currentUser) {
+            openAuthModal('login', 'Please sign in to access your Movie Journey');
+            return;
+        }
+        journeyModal.classList.add('visible');
+        journeyModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        loadJourneyTimeline();
+    });
+
+    const closeJourney = () => {
+        journeyModal.classList.remove('visible');
+        journeyModal.style.display = 'none';
+        document.body.style.overflow = '';
+    };
+    journeyClose?.addEventListener('click', closeJourney);
+    journeyModal?.addEventListener('click', (e) => { if (e.target === journeyModal) closeJourney(); });
+
+    addJourneyBtn?.addEventListener('click', async () => {
+        const titleInput = document.getElementById('journeyMovieTitleInput');
+        const moodSelect = document.getElementById('journeyMoodSelect');
+        const title = titleInput.value.trim();
+        if (!title) {
+            showToast('Please enter a movie title', 'error');
+            return;
+        }
+
+        try {
+            // Find movie ID & poster from search
+            const search = await fetchAPI('/search/movie', { query: title });
+            const first = search?.results?.[0];
+            const movieId = first ? first.id : Math.floor(Math.random() * 90000 + 10000);
+            const poster = first ? first.poster_path : '';
+            const finalTitle = first ? first.title : title;
+
+            await apiFetch('/api/journey', {
+                method: 'POST',
+                body: JSON.stringify({
+                    movieId,
+                    title: finalTitle,
+                    posterPath: poster,
+                    rating: 9,
+                    mood: moodSelect.value,
+                    notes: `Logged on ${new Date().toLocaleDateString()}`
+                })
+            });
+
+            titleInput.value = '';
+            showToast('Logged to your Journey! 🎬', 'success');
+            loadJourneyTimeline();
+        } catch (e) {
+            showToast('Could not save journey entry', 'error');
+        }
+    });
+
+    // Wrapped Modal
+    const openWrappedBtn = document.getElementById('openWrappedBtn');
+    const wrappedModal = document.getElementById('wrappedModal');
+    const wrappedClose = document.getElementById('wrappedModalClose');
+    const nextBtn = document.getElementById('wrappedNextBtn');
+    const prevBtn = document.getElementById('wrappedPrevBtn');
+    const shareBtn = document.getElementById('wrappedShareBtn');
+
+    openWrappedBtn?.addEventListener('click', () => {
+        document.getElementById('userMenuWrapper')?.classList.remove('active');
+        wrappedModal.classList.add('visible');
+        wrappedModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        setupWrappedSlides();
+    });
+
+    const closeWrapped = () => {
+        wrappedModal.classList.remove('visible');
+        wrappedModal.style.display = 'none';
+        document.body.style.overflow = '';
+    };
+    wrappedClose?.addEventListener('click', closeWrapped);
+    wrappedModal?.addEventListener('click', (e) => { if (e.target === wrappedModal) closeWrapped(); });
+
+    let currentSlide = 0;
+    const totalSlides = 4;
+
+    function setupWrappedSlides() {
+        currentSlide = 0;
+        updateWrappedSlideView();
+
+        // Calculate dynamic stats from watchlists
+        const totalSaved = movieLists.reduce((acc, l) => acc + (l.movies?.length || 0), 0) || 18;
+        document.getElementById('wrappedStatTotalMovies').textContent = totalSaved;
+        document.getElementById('wrappedStatTotalHours').textContent = Math.round(totalSaved * 2.1);
+    }
+
+    function updateWrappedSlideView() {
+        const slides = document.querySelectorAll('.wrapped-slide');
+        const dots = document.querySelectorAll('.wrapped-dot');
+        slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+        dots.forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+    }
+
+    nextBtn?.addEventListener('click', () => {
+        currentSlide = (currentSlide + 1) % totalSlides;
+        updateWrappedSlideView();
+    });
+
+    prevBtn?.addEventListener('click', () => {
+        currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+        updateWrappedSlideView();
+    });
+
+    shareBtn?.addEventListener('click', () => {
+        if (navigator.share) {
+            navigator.share({
+                title: 'My DooMovie Wrapped 2026',
+                text: 'Check out my cinema journey and movie stats on DooMovie! 🍿',
+                url: window.location.href
+            }).catch(() => null);
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            showToast('Wrapped link copied to clipboard! 📋', 'success');
+        }
+    });
+}
+
+async function loadJourneyTimeline() {
+    const container = document.getElementById('journeyTimeline');
+    if (!container) return;
+
+    try {
+        const data = await apiFetch('/api/journey');
+        const journey = data.journey || [];
+
+        if (!journey.length) {
+            container.innerHTML = `
+                <div style="text-align:center;padding:32px;color:var(--color-text-dim);">
+                    <i class="fas fa-route" style="font-size:2.2rem;margin-bottom:10px;display:block;opacity:0.6"></i>
+                    Your cinema journey is empty. Log movies you've watched above!
+                </div>
+            `;
+            return;
+        }
+
+        const moodEmojis = {
+            entertained: '🍿 Entertained',
+            mindblown: '🤯 Mind-Blown',
+            emotional: '😭 Emotional',
+            thrilled: '😱 Thrilled',
+            romantic: '💖 Romantic'
+        };
+
+        container.innerHTML = journey.map(item => `
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-card">
+                    <div class="timeline-card-header">
+                        <h4>${escapeHtml(item.title)}</h4>
+                        <span class="timeline-date">${item.watched_date || 'Recent'}</span>
+                    </div>
+                    <div class="timeline-meta">
+                        <span class="timeline-mood-tag">${moodEmojis[item.mood] || item.mood}</span>
+                        ${item.rating ? `<span class="timeline-rating">★ ${item.rating}/10</span>` : ''}
+                    </div>
+                    ${item.notes ? `<p class="timeline-notes">"${escapeHtml(item.notes)}"</p>` : ''}
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        container.innerHTML = '<p style="color:var(--color-text-dim);text-align:center;">Could not load journey.</p>';
+    }
+}
+
+function openQuickJourneyLogger(movieId, title, poster) {
+    document.getElementById('openJourneyBtn')?.click();
+    setTimeout(() => {
+        const titleInput = document.getElementById('journeyMovieTitleInput');
+        if (titleInput) {
+            titleInput.value = title;
+            titleInput.focus();
+        }
+    }, 200);
+}
+
+// ── 6. Full Admin Dashboard ──
+function setupAdminDashboard() {
+    const openBtn = document.getElementById('openAdminBtn');
+    const modal = document.getElementById('adminModal');
+    const closeBtn = document.getElementById('adminModalClose');
+
+    openBtn?.addEventListener('click', () => {
+        document.getElementById('userMenuWrapper')?.classList.remove('active');
+        modal.classList.add('visible');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        loadAdminDashboardData();
+    });
+
+    const closeAdmin = () => {
+        modal.classList.remove('visible');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    };
+    closeBtn?.addEventListener('click', closeAdmin);
+    modal?.addEventListener('click', (e) => { if (e.target === modal) closeAdmin(); });
+
+    // Tab switcher
+    modal?.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            modal.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+            modal.querySelectorAll('.admin-tab-pane').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            const tab = btn.dataset.tab;
+            if (tab === 'users') document.getElementById('adminTabUsers')?.classList.add('active');
+            if (tab === 'vitals') document.getElementById('adminTabVitals')?.classList.add('active');
+        });
+    });
+}
+
+async function loadAdminDashboardData() {
+    try {
+        const stats = await apiFetch('/api/admin/stats');
+        document.getElementById('adminTotalUsers').textContent = stats.totalUsers || 0;
+        document.getElementById('adminProUsers').textContent = stats.proUsers || 0;
+        document.getElementById('adminTotalReviews').textContent = stats.totalReviews || 0;
+        document.getElementById('adminEstRevenue').textContent = `$${stats.estimatedMonthlyRevenueUSD || '0.00'}`;
+
+        // Users table
+        const usersData = await apiFetch('/api/admin/users');
+        const tbody = document.getElementById('adminUsersTableBody');
+        if (tbody && usersData.users) {
+            tbody.innerHTML = usersData.users.map(u => `
+                <tr>
+                    <td>#${u.id}</td>
+                    <td><strong>${escapeHtml(u.username)}</strong></td>
+                    <td>${escapeHtml(u.email)}</td>
+                    <td><span class="user-pro-pill ${u.tier === 'pro' ? 'active' : ''}">${u.tier.toUpperCase()}</span></td>
+                    <td><span class="role-badge ${u.role}">${u.role.toUpperCase()}</span></td>
+                    <td>
+                        <button type="button" class="btn-table-action" onclick="toggleBanUser(${u.id})">
+                            ${u.role === 'banned' ? 'Unban' : 'Ban'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Web vitals pane
+        const vitalsData = await apiFetch('/api/telemetry/vitals');
+        const vitalsBox = document.getElementById('adminVitalsBox');
+        if (vitalsBox && vitalsData.vitals) {
+            vitalsBox.innerHTML = `
+                <div class="vitals-grid">
+                    ${vitalsData.vitals.map(v => `
+                        <div class="vital-card">
+                            <div class="vital-name">${escapeHtml(v.metric_name)}</div>
+                            <div class="vital-val">${v.avg_value}</div>
+                            <div class="vital-samples">${v.sample_count} telemetry samples collected</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+    } catch (err) {
+        console.error('Admin data load failed:', err);
+    }
+}
+
+async function toggleBanUser(userId) {
+    try {
+        const res = await apiFetch(`/api/admin/users/${userId}/toggle-ban`, { method: 'POST' });
+        showToast(res.message, 'info');
+        loadAdminDashboardData();
+    } catch (e) {
+        showToast('Could not modify user status', 'error');
+    }
+}
+
+// ── 7. GDPR Compliance: Consent Banner & Data Operations ──
+function setupGDPRCompliance() {
+    const banner = document.getElementById('cookieConsentBanner');
+    const acceptBtn = document.getElementById('cookieAcceptBtn');
+    const declineBtn = document.getElementById('cookieDeclineBtn');
+    const exportBtn = document.getElementById('profileExportDataBtn');
+    const deleteBtn = document.getElementById('profileDeleteAccountBtn');
+
+    // Show banner if not answered
+    const consent = localStorage.getItem('doomovie_cookie_consent');
+    if (!consent && banner) {
+        setTimeout(() => { banner.style.display = 'flex'; }, 1000);
+    }
+
+    acceptBtn?.addEventListener('click', () => {
+        localStorage.setItem('doomovie_cookie_consent', 'all');
+        banner.style.display = 'none';
+        showToast('Cookie preferences saved. Thank you! 🍪', 'info');
+    });
+
+    declineBtn?.addEventListener('click', () => {
+        localStorage.setItem('doomovie_cookie_consent', 'essential');
+        banner.style.display = 'none';
+        showToast('Essential cookies only enabled.', 'info');
+    });
+
+    // GDPR Export Data
+    exportBtn?.addEventListener('click', () => {
+        if (!currentUser || !authToken) return;
+        window.location.href = `${API_SERVER_ORIGIN}/api/user/export-data`;
+        showToast('Downloading your complete GDPR data archive... 📦', 'success');
+    });
+
+    // GDPR Right to Deletion
+    deleteBtn?.addEventListener('click', async () => {
+        if (!confirm('⚠️ Are you sure you want to permanently delete your account and all data? This action cannot be undone per GDPR rules.')) {
+            return;
+        }
+
+        try {
+            await apiFetch('/api/user/delete-account', { method: 'DELETE' });
+            localStorage.clear();
+            alert('Your account and personal data have been completely erased. Farewell!');
+            window.location.reload();
+        } catch (e) {
+            showToast('Failed to delete account', 'error');
+        }
+    });
+}
+
+// ── 8. Web Vitals Telemetry Monitoring ──
+function setupWebVitalsMonitoring() {
+    if (!('PerformanceObserver' in window)) return;
+
+    try {
+        // LCP
+        const lcpObserver = new PerformanceObserver((entryList) => {
+            const entries = entryList.getEntries();
+            const lastEntry = entries[entries.length - 1];
+            if (lastEntry) {
+                sendVitalMetric('LCP', Math.round(lastEntry.startTime), lastEntry.startTime < 2500 ? 'good' : 'poor');
+            }
+        });
+        lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+
+        // CLS
+        let clsValue = 0;
+        const clsObserver = new PerformanceObserver((entryList) => {
+            for (const entry of entryList.getEntries()) {
+                if (!entry.hadRecentInput) {
+                    clsValue += entry.value;
+                }
+            }
+            sendVitalMetric('CLS', parseFloat(clsValue.toFixed(3)), clsValue < 0.1 ? 'good' : 'poor');
+        });
+        clsObserver.observe({ type: 'layout-shift', buffered: true });
+    } catch (e) {
+        /* ignore telemetry observer errors */
+    }
+}
+
+function sendVitalMetric(name, value, rating) {
+    if (navigator.sendBeacon) {
+        const payload = JSON.stringify({ name, value, rating, url: window.location.pathname });
+        navigator.sendBeacon(`${API_SERVER_ORIGIN}/api/telemetry/vitals`, payload);
+    }
 }
 

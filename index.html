@@ -47,6 +47,20 @@
                 <div class="search-dropdown" id="searchDropdown"></div>
             </div>
 
+            <!-- Phase 5 Quick Actions: Roulette, Challenges, Pro -->
+            <button class="nav-feature-btn" id="openRouletteBtn" title="Movie Roulette — Group Decision Maker">
+                <i class="fas fa-dice"></i>
+                <span>Roulette</span>
+            </button>
+            <button class="nav-feature-btn" id="openChallengesBtn" title="Cinephile Challenges">
+                <i class="fas fa-trophy"></i>
+                <span>Challenges</span>
+            </button>
+            <button class="nav-feature-btn pro-badge-btn" id="openProBtn" title="DooMovie Pro">
+                <i class="fas fa-crown"></i>
+                <span>Pro</span>
+            </button>
+
             <button class="theme-toggle-btn" id="themeToggle" aria-label="Toggle theme">
                 <i class="fas fa-moon"></i>
             </button>
@@ -61,13 +75,17 @@
                     <button class="user-avatar-btn" id="userAvatarBtn" aria-label="User profile">
                         <span class="avatar-badge" id="navUserAvatar">🍿</span>
                         <span class="nav-user-name" id="navUserName">User</span>
+                        <span class="user-pro-pill" id="navUserProPill" style="display:none;">PRO</span>
                         <i class="fas fa-chevron-down nav-dropdown-arrow"></i>
                     </button>
                     <div class="user-dropdown-menu" id="userDropdown">
                         <div class="dropdown-user-header">
                             <div class="dropdown-avatar" id="dropdownUserAvatar">🍿</div>
                             <div class="dropdown-user-details">
-                                <span class="dropdown-name" id="dropdownUsername">User</span>
+                                <div style="display:flex;align-items:center;gap:6px;">
+                                    <span class="dropdown-name" id="dropdownUsername">User</span>
+                                    <span class="user-pro-pill" id="dropdownUserProPill" style="display:none;">PRO</span>
+                                </div>
                                 <span class="dropdown-email" id="dropdownEmail">user@example.com</span>
                             </div>
                         </div>
@@ -75,8 +93,17 @@
                         <button class="dropdown-item" id="openProfileBtn">
                             <i class="fas fa-id-card"></i> My Profile &amp; Stats
                         </button>
+                        <button class="dropdown-item" id="openJourneyBtn">
+                            <i class="fas fa-route"></i> Movie Journey Timeline
+                        </button>
+                        <button class="dropdown-item" id="openWrappedBtn">
+                            <i class="fas fa-sparkles" style="color:#eab308;"></i> Year in Review (Wrapped)
+                        </button>
                         <button class="dropdown-item" id="syncWatchlistBtn">
                             <i class="fas fa-cloud-arrow-up"></i> Sync Cloud Watchlist
+                        </button>
+                        <button class="dropdown-item" id="openAdminBtn" style="display:none;">
+                            <i class="fas fa-shield-halved" style="color:#3b82f6;"></i> Admin Dashboard
                         </button>
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item dropdown-logout text-danger" id="logoutBtn">
@@ -745,13 +772,297 @@
             <div class="profile-modal-actions">
                 <button class="profile-action-btn sync-cloud-btn" id="profileSyncCloudBtn">
                     <i class="fas fa-cloud-arrow-up"></i>
-                    <span>Sync Watchlists to Cloud</span>
+                    <span>Sync Watchlists</span>
+                </button>
+                <button class="profile-action-btn gdpr-export-btn" id="profileExportDataBtn">
+                    <i class="fas fa-download"></i>
+                    <span>Export Data (GDPR)</span>
                 </button>
                 <button class="profile-action-btn signout-btn" id="profileSignoutBtn">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Sign Out</span>
                 </button>
             </div>
+            <div style="margin-top:14px;text-align:center;">
+                <button type="button" class="btn-delete-account-text" id="profileDeleteAccountBtn">
+                    <i class="fas fa-trash-alt"></i> Delete Account &amp; Data (GDPR)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- PHASE 5 MODALS: ROULETTE, CHALLENGES, PRO, JOURNEY, WRAPPED, ADMIN -->
+    <!-- ═════════════════════════════════════════════════════════════ -->
+
+    <!-- 1. Movie Roulette (Group Decision Maker) Modal -->
+    <div id="rouletteModal" class="modal">
+        <div class="modal-content roulette-modal-content">
+            <button class="modal-close" id="rouletteModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            <div class="roulette-header">
+                <h2><i class="fas fa-dice" style="color:var(--color-primary)"></i> Movie Roulette</h2>
+                <p>Can't agree on what to watch with friends or family? Spin the wheel to decide!</p>
+            </div>
+            
+            <div class="roulette-wheel-container">
+                <div class="roulette-pointer"><i class="fas fa-caret-down"></i></div>
+                <canvas id="rouletteWheelCanvas" width="300" height="300"></canvas>
+            </div>
+
+            <div class="roulette-actions-bar">
+                <button class="btn-roulette-spin" id="spinRouletteBtn">
+                    <i class="fas fa-play"></i> SPIN ROULETTE!
+                </button>
+            </div>
+
+            <!-- Result Card -->
+            <div class="roulette-result-card" id="rouletteResultCard" style="display:none;">
+                <div class="result-badge">🎉 WINNER PICKED!</div>
+                <h3 id="rouletteWinnerTitle">Movie Title</h3>
+                <div class="result-btn-row">
+                    <button class="btn-roulette-view" id="rouletteViewMovieBtn">
+                        <i class="fas fa-info-circle"></i> View Details &amp; Trailer
+                    </button>
+                    <button class="btn-roulette-again" id="rouletteSpinAgainBtn">
+                        <i class="fas fa-redo"></i> Spin Again
+                    </button>
+                </div>
+            </div>
+
+            <!-- Candidate Movies Tags Input -->
+            <div class="roulette-input-section">
+                <div class="roulette-input-row">
+                    <input type="text" id="rouletteMovieInput" placeholder="Add a movie name or title..." class="roulette-input">
+                    <button type="button" class="btn-add-roulette" id="addRouletteMovieBtn">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+                <div class="roulette-presets-row">
+                    <button type="button" class="btn-preset" id="presetTrendingBtn"><i class="fas fa-fire"></i> Fill Trending</button>
+                    <button type="button" class="btn-preset" id="presetWatchlistBtn"><i class="fas fa-bookmark"></i> Fill My Watchlist</button>
+                    <button type="button" class="btn-preset text-danger" id="presetClearBtn"><i class="fas fa-trash"></i> Clear</button>
+                </div>
+                <div class="roulette-tags-list" id="rouletteTagsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Cinephile Challenges Modal -->
+    <div id="challengesModal" class="modal">
+        <div class="modal-content challenges-modal-content">
+            <button class="modal-close" id="challengesModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            <div class="challenges-header">
+                <h2><i class="fas fa-trophy" style="color:#ffd700"></i> Cinephile Challenges</h2>
+                <p>Complete weekly &amp; monthly cinema quests to earn exclusive achievement badges!</p>
+            </div>
+            <div class="challenges-grid" id="challengesListContainer">
+                <div style="padding:24px;text-align:center;"><div class="mini-spinner"></div> Loading challenges...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Freemium Subscription (DooMovie Pro) Modal -->
+    <div id="proModal" class="modal">
+        <div class="modal-content pro-modal-content">
+            <button class="modal-close" id="proModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            <div class="pro-modal-header">
+                <div class="pro-crown-badge"><i class="fas fa-crown"></i></div>
+                <h2>Elevate Your Cinema Experience</h2>
+                <p class="pro-subtitle">Join <strong>DooMovie Pro</strong> for the ultimate film enthusiast toolkit</p>
+            </div>
+
+            <div class="pro-pricing-box">
+                <div class="pro-price-amount">$4.99 <span class="pro-price-period">/ month (Rp49.000)</span></div>
+                <span class="pro-price-badge">Cancel anytime • 30-Day Money Back</span>
+            </div>
+
+            <div class="pro-perks-list">
+                <div class="pro-perk-item">
+                    <i class="fas fa-check-circle"></i>
+                    <div><strong>100% Ad-Free &amp; High Priority TMDB Streams</strong></div>
+                </div>
+                <div class="pro-perk-item">
+                    <i class="fas fa-check-circle"></i>
+                    <div><strong>Unlimited Custom Watchlists with Custom Emojis</strong></div>
+                </div>
+                <div class="pro-perk-item">
+                    <i class="fas fa-check-circle"></i>
+                    <div><strong>Exclusive Golden PRO Badge on Profile &amp; Reviews</strong></div>
+                </div>
+                <div class="pro-perk-item">
+                    <i class="fas fa-check-circle"></i>
+                    <div><strong>Spotify-Style "Year in Review" (Wrapped) Stories</strong></div>
+                </div>
+                <div class="pro-perk-item">
+                    <i class="fas fa-check-circle"></i>
+                    <div><strong>Movie Journey Interactive Visual Timeline &amp; Diary</strong></div>
+                </div>
+            </div>
+
+            <button class="btn-upgrade-stripe" id="stripeCheckoutBtn">
+                <i class="fab fa-stripe" style="font-size:1.4rem;margin-right:6px"></i> Upgrade with Stripe Now
+            </button>
+            <div class="pro-footer-note">Demo integration powered by secure Stripe API simulation</div>
+        </div>
+    </div>
+
+    <!-- 4. Movie Journey Timeline Modal -->
+    <div id="journeyModal" class="modal">
+        <div class="modal-content journey-modal-content">
+            <button class="modal-close" id="journeyModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            <div class="journey-header">
+                <h2><i class="fas fa-route" style="color:var(--color-primary)"></i> Movie Journey Timeline</h2>
+                <p>Your chronological cinema memoir: relive when and what you watched!</p>
+            </div>
+            
+            <div class="journey-add-bar">
+                <input type="text" id="journeyMovieTitleInput" placeholder="Log a movie you watched recently..." class="journey-title-input">
+                <select id="journeyMoodSelect" class="journey-mood-select">
+                    <option value="entertained">🍿 Entertained</option>
+                    <option value="mindblown">🤯 Mind-Blown</option>
+                    <option value="emotional">😭 Emotional</option>
+                    <option value="thrilled">😱 Thrilled</option>
+                    <option value="romantic">💖 Romantic</option>
+                </select>
+                <button type="button" class="btn-add-journey" id="addJourneyBtn">
+                    <i class="fas fa-plus"></i> Log Entry
+                </button>
+            </div>
+
+            <div class="journey-timeline" id="journeyTimeline">
+                <div style="padding:24px;text-align:center;"><div class="mini-spinner"></div> Loading your cinema journey...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Year in Review / Wrapped Modal -->
+    <div id="wrappedModal" class="modal">
+        <div class="modal-content wrapped-modal-content">
+            <button class="modal-close" id="wrappedModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            <div class="wrapped-slides-wrapper" id="wrappedSlidesWrapper">
+                <!-- Slide 1 -->
+                <div class="wrapped-slide active" data-slide="0">
+                    <div class="wrapped-badge">DOOMOVIE WRAPPED 2026</div>
+                    <h1 class="wrapped-hero-stat" id="wrappedStatTotalMovies">28</h1>
+                    <div class="wrapped-hero-label">Movies Watched &amp; Explored This Year</div>
+                    <p class="wrapped-sub">That amounts to over <strong id="wrappedStatTotalHours">56</strong> hours of cinema storytelling!</p>
+                </div>
+                <!-- Slide 2 -->
+                <div class="wrapped-slide" data-slide="1">
+                    <div class="wrapped-badge">YOUR CINEMATIC PERSONA</div>
+                    <div class="wrapped-persona-icon" id="wrappedPersonaIcon">🚀</div>
+                    <h2 class="wrapped-persona-title" id="wrappedPersonaTitle">The Visionary Explorer</h2>
+                    <p class="wrapped-sub">You gravitate towards Sci-Fi, Mind-Bending Mystery, and Action masterworks.</p>
+                </div>
+                <!-- Slide 3 -->
+                <div class="wrapped-slide" data-slide="2">
+                    <div class="wrapped-badge">TOP CROWNED FAVORITE</div>
+                    <div class="wrapped-movie-spotlight" id="wrappedFavoriteMovieBox">
+                        <h3 id="wrappedFavoriteTitle">Interstellar</h3>
+                        <div class="wrapped-fav-score">★ 10/10 Masterpiece</div>
+                    </div>
+                    <p class="wrapped-sub">Your highest-rated film that left the deepest emotional imprint.</p>
+                </div>
+                <!-- Slide 4 -->
+                <div class="wrapped-slide" data-slide="3">
+                    <div class="wrapped-badge">INDONESIAN CINEMA CHAMPION</div>
+                    <div class="wrapped-indo-badge"><i class="fas fa-flag"></i> Score: 92/100</div>
+                    <p class="wrapped-sub">You actively support and celebrate Indonesian storytellers and directors!</p>
+                    <div class="wrapped-share-actions">
+                        <button type="button" class="btn-wrapped-share" id="wrappedShareBtn">
+                            <i class="fas fa-share-nodes"></i> Share My Wrapped
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="wrapped-nav-dots" id="wrappedNavDots">
+                <span class="wrapped-dot active"></span>
+                <span class="wrapped-dot"></span>
+                <span class="wrapped-dot"></span>
+                <span class="wrapped-dot"></span>
+            </div>
+            <div class="wrapped-controls">
+                <button type="button" class="btn-wrapped-nav" id="wrappedPrevBtn"><i class="fas fa-chevron-left"></i> Prev</button>
+                <button type="button" class="btn-wrapped-nav" id="wrappedNextBtn">Next <i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Full Admin Dashboard Modal -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content admin-modal-content">
+            <button class="modal-close" id="adminModalClose" aria-label="Close"><i class="fas fa-times"></i></button>
+            <div class="admin-header">
+                <h2><i class="fas fa-shield-halved" style="color:#3b82f6"></i> DooMovie Admin Dashboard</h2>
+                <span class="admin-badge">System Administrator</span>
+            </div>
+
+            <!-- Admin Overview Metrics Grid -->
+            <div class="admin-metrics-grid" id="adminMetricsGrid">
+                <div class="admin-metric-card">
+                    <div class="metric-num" id="adminTotalUsers">-</div>
+                    <div class="metric-label">Total Users</div>
+                </div>
+                <div class="admin-metric-card">
+                    <div class="metric-num" id="adminProUsers">-</div>
+                    <div class="metric-label">Pro Subscribers</div>
+                </div>
+                <div class="admin-metric-card">
+                    <div class="metric-num" id="adminTotalReviews">-</div>
+                    <div class="metric-label">Community Reviews</div>
+                </div>
+                <div class="admin-metric-card">
+                    <div class="metric-num" id="adminEstRevenue">$0.00</div>
+                    <div class="metric-label">Est. Monthly Revenue</div>
+                </div>
+            </div>
+
+            <!-- Admin Tabs -->
+            <div class="admin-tabs-nav">
+                <button class="admin-tab-btn active" data-tab="users">User Management</button>
+                <button class="admin-tab-btn" data-tab="vitals">Web Vitals Telemetry</button>
+            </div>
+
+            <div class="admin-tab-pane active" id="adminTabUsers">
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Tier</th>
+                                <th>Role</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminUsersTableBody">
+                            <tr><td colspan="6" style="text-align:center;">Loading users...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-tab-pane" id="adminTabVitals">
+                <div class="vitals-summary-box" id="adminVitalsBox">
+                    <p style="color:var(--color-text-dim)">Loading Core Web Vitals telemetry...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. GDPR Cookie & Privacy Consent Floating Banner -->
+    <div class="cookie-consent-banner" id="cookieConsentBanner" style="display:none;">
+        <div class="cookie-consent-content">
+            <i class="fas fa-cookie-bite cookie-icon"></i>
+            <div class="cookie-text">
+                <strong>We Value Your Privacy (GDPR Compliance)</strong>
+                <p>DooMovie uses essential cookies and local storage to provide cloud watchlists, seamless logins, and aggregated performance metrics without tracking across third-party sites.</p>
+            </div>
+        </div>
+        <div class="cookie-consent-actions">
+            <button type="button" class="btn-cookie-accept" id="cookieAcceptBtn">Accept All</button>
+            <button type="button" class="btn-cookie-decline" id="cookieDeclineBtn">Essential Only</button>
         </div>
     </div>
 

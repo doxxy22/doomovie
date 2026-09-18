@@ -1,0 +1,63 @@
+name: DooMovie CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-and-test:
+    name: Code Quality & Server Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate JavaScript Syntax
+        run: |
+          node -c server/server.js
+          node -c server/db.js
+          node -c script.js
+
+      - name: Run Server Self-Test
+        env:
+          PORT: 8099
+          JWT_SECRET: test_secret_key_12345
+          TMDB_API_KEY: ba6f7d3b063751fb2bea48683e263f63
+        run: |
+          node server/server.js &
+          SERVER_PID=$!
+          sleep 4
+          # Health check endpoint verification
+          curl -f http://localhost:8099/api/tmdb/trending/movie/day || exit 1
+          kill $SERVER_PID
+
+  docker-build:
+    name: Docker Image Build Validation
+    needs: validate-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: actions/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: doomovie:latest

@@ -1,0 +1,25 @@
+services:
+  doomovie:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: doomovie_app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8090}:8090"
+    environment:
+      - NODE_ENV=production
+      - PORT=8090
+      - TMDB_API_KEY=${TMDB_API_KEY:-ba6f7d3b063751fb2bea48683e263f63}
+      - JWT_SECRET=${JWT_SECRET:-doomovie_jwt_secret_production_key_2026}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_mock_stripe_key}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-whsec_mock_stripe_secret}
+    volumes:
+      # Persistent SQLite storage
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8090/api/tmdb/trending/movie/day"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
